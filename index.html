@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quantum Key Simulation - Satellite QKD Simulator</title>
+    <!-- Google Fonts for futuristic & clean scientific look -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="stars-bg"></div>
+    <div class="nebula-bg"></div>
+
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="logo-area">
+                <svg class="app-logo" viewBox="0 0 50 50">
+                    <circle cx="25" cy="25" r="22" fill="none" stroke="var(--primary-glow)" stroke-width="2" />
+                    <circle class="logo-inner-ring" cx="25" cy="25" r="16" fill="none" stroke="var(--accent-glow)" stroke-width="1.5" stroke-dasharray="4,4" />
+                    <circle cx="25" cy="25" r="8" fill="var(--primary)" />
+                    <!-- Satellite dish path -->
+                    <path d="M 21,21 A 5.6 5.6 0 0 1 29,21" fill="none" stroke="#fff" stroke-width="1.5" />
+                    <line x1="25" y1="21" x2="25" y2="25" stroke="#fff" stroke-width="1.5" />
+                </svg>
+                <div class="logo-text">
+                    <h1>Quantum Key Simulation</h1>
+                    <span class="subtitle">Satellite QKD Protocol Simulator (BB84)</span>
+                </div>
+            </div>
+            
+            <div class="status-indicator">
+                <span class="status-label">System Status:</span>
+                <span id="system-status" class="status-value status-online">
+                    <span class="status-pulse"></span>
+                    Operational
+                </span>
+            </div>
+        </header>
+
+        <!-- Main Content Layout -->
+        <main class="app-layout">
+            
+            <!-- Left Panel: Input controls and System Log -->
+            <section class="left-panel">
+                <!-- Controls Card -->
+                <div class="card glass-card">
+                    <div class="card-header">
+                        <svg class="card-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12,6A6,6 0 0,0 6,12A6,6 0 0,0 12,18A6,6 0 0,0 18,12A6,6 0 0,0 12,6M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8Z"/></svg>
+                        <h2>Simulation Controller</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label for="message-input">Message to Encrypt</label>
+                            <input type="text" id="message-input" value="Hello Quantum World!" placeholder="Enter message to encrypt..." maxlength="100">
+                        </div>
+                        
+                        <div class="form-group inline-group">
+                            <div class="checkbox-container">
+                                <label class="switch">
+                                    <input type="checkbox" id="interception-checkbox">
+                                    <span class="slider"></span>
+                                </label>
+                                <span class="checkbox-label">Simulate Interception (Eve's Eavesdropping)</span>
+                            </div>
+                        </div>
+
+                        <div class="button-group">
+                            <button id="run-btn" class="btn btn-primary">
+                                <span class="btn-text">Run Simulation</span>
+                                <svg class="btn-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M8,5.14V19.14L19,12.14L8,5.14Z"/></svg>
+                            </button>
+                            <button id="clear-btn" class="btn btn-secondary">
+                                <span class="btn-text">Clear Results</span>
+                                <svg class="btn-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Log Panel -->
+                <div class="card glass-card console-card">
+                    <div class="card-header">
+                        <svg class="card-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M20,19H4V5H20M20,3H4C2.89,3 2,3.89 2,5V19A2,2 0 0,0 4,21H20A2,2 0 0,0 22,19V5C22,3.89 21.1,3 20,3M12,11H18V13H12V11M12,7H18V9H12V7M12,15H18V17H12V15M6,7H10V11H6V7M6,13H10V17H6V13Z"/></svg>
+                        <h2>System Log Console</h2>
+                        <button id="clear-log-btn" class="console-clear-btn">Clear Log</button>
+                    </div>
+                    <div class="card-body console-body">
+                        <div id="log-output" class="log-output">
+                            <!-- Logs will be appended here -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Right Panel: Tabs for Visualizer and Results -->
+            <section class="right-panel">
+                <div class="card glass-card tabs-card">
+                    <!-- Tab Navigation -->
+                    <div class="tab-nav">
+                        <button class="tab-btn active" data-tab="visualization">
+                            <svg class="tab-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M11,6H13V12H11V6M11,14H13V16H11V14Z"/></svg>
+                            Network Visualizer
+                        </button>
+                        <button class="tab-btn" data-tab="summary">
+                            <svg class="tab-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M13,9H11V7H13M13,17H11V11H13M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z"/></svg>
+                            Simulation Summary
+                        </button>
+                        <button class="tab-btn" data-tab="details">
+                            <svg class="tab-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M19,3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3M19,5V19H5V5H19M7,7V9H17V7H7M7,11V13H17V11H7M7,15V17H14V15H7Z"/></svg>
+                            Protocol Details
+                        </button>
+                        <button class="tab-btn" data-tab="security">
+                            <svg class="tab-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M12,12H19C18.47,16.11 15.72,19.78 12,20.93V12H5V6.3L12,3.19M12,1L3,5V11C3,16.55 6.84,21.74 12,23C17.16,21.74 21,16.55 21,11V5L12,1Z"/></svg>
+                            Security Analysis
+                        </button>
+                    </div>
+
+                    <!-- Tab Content Panel -->
+                    <div class="tab-content-container">
+                        
+                        <!-- Visualizer Tab -->
+                        <div id="visualization-tab" class="tab-content active">
+                            <div class="viz-header">
+                                <h3>Quantum Satellite & Ground Stations</h3>
+                                <div class="viz-controls">
+                                    <button id="anim-toggle-btn" class="btn btn-sm btn-secondary" disabled>Start Animation</button>
+                                    <button id="anim-reset-btn" class="btn btn-sm btn-outline">Reset</button>
+                                </div>
+                            </div>
+                            <div class="canvas-wrapper">
+                                <canvas id="viz-canvas" width="800" height="500"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Summary Tab -->
+                        <div id="summary-tab" class="tab-content">
+                            <div class="results-layout">
+                                <div class="results-main">
+                                    <div class="result-card">
+                                        <label>Original Message</label>
+                                        <div id="res-original" class="res-value text-highlight">-</div>
+                                    </div>
+                                    <div class="result-card">
+                                        <label>Encrypted Message (Hex)</label>
+                                        <div id="res-encrypted" class="res-value hex-display font-mono">-</div>
+                                    </div>
+                                    <div class="result-card">
+                                        <label>Decrypted Message</label>
+                                        <div id="res-decrypted" class="res-value text-success">-</div>
+                                    </div>
+                                </div>
+
+                                <div class="results-sidebar">
+                                    <div class="stat-box">
+                                        <span class="stat-label">Raw Key Size</span>
+                                        <span id="stat-raw-key" class="stat-number">-</span>
+                                        <span class="stat-unit">bits</span>
+                                    </div>
+                                    <div class="stat-box">
+                                        <span class="stat-label">Final Key Size</span>
+                                        <span id="stat-final-key" class="stat-number">-</span>
+                                        <span class="stat-unit">bits</span>
+                                    </div>
+                                    <div class="stat-box">
+                                        <span class="stat-label">Quantum Bit Error Rate (QBER)</span>
+                                        <span id="stat-qber" class="stat-number">-</span>
+                                        <span class="stat-unit">%</span>
+                                    </div>
+                                    <div class="stat-box highlight-box" id="security-status-box">
+                                        <span class="stat-label">Security Status</span>
+                                        <span id="stat-security-status" class="stat-status">-</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Details Tab -->
+                        <div id="details-tab" class="tab-content">
+                            <div class="details-layout">
+                                <div class="info-row">
+                                    <div class="info-field">
+                                        <span class="field-label">Quantum Protocol:</span>
+                                        <span class="field-value">BB84 (Bennett-Brassard 1984)</span>
+                                    </div>
+                                    <div class="info-field">
+                                        <span class="field-label">Channel Type:</span>
+                                        <span class="field-value">Satellite-to-Ground (Free Space Optical)</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="basis-reconciliation-section">
+                                    <h4>Basis Reconciliation (First 40 Polarization States)</h4>
+                                    <div class="basis-grid-container">
+                                        <div class="basis-row">
+                                            <span class="row-header">Alice's Polarizations</span>
+                                            <div id="alice-polarizations-display" class="polarization-sequence font-mono">Run simulation to see sequence</div>
+                                        </div>
+                                        <div class="basis-row">
+                                            <span class="row-header">Alice's Bases</span>
+                                            <div id="alice-bases-display" class="polarization-sequence font-mono">-</div>
+                                        </div>
+                                        <div class="basis-row">
+                                            <span class="row-header">Bob's Measured Bases</span>
+                                            <div id="bob-bases-display" class="polarization-sequence font-mono">-</div>
+                                        </div>
+                                        <div class="basis-row">
+                                            <span class="row-header">Reconciliation Result</span>
+                                            <div id="reconciliation-display" class="polarization-sequence font-mono">-</div>
+                                        </div>
+                                    </div>
+                                    <div class="legend">
+                                        <span class="legend-item"><span class="legend-color match"></span> Matching Basis (Kept)</span>
+                                        <span class="legend-item"><span class="legend-color mismatch"></span> Mismatched Basis (Discarded)</span>
+                                    </div>
+                                </div>
+
+                                <div class="key-sample-section">
+                                    <h4>Key Sample (First 64 bits)</h4>
+                                    <div class="key-box">
+                                        <h5>Raw Shifted Key</h5>
+                                        <div id="raw-key-sample" class="key-text font-mono">-</div>
+                                    </div>
+                                    <div class="key-box">
+                                        <h5>Final Distilled Key (After Error Correction & Privacy Amplification)</h5>
+                                        <div id="final-key-sample" class="key-text font-mono">-</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Security Tab -->
+                        <div id="security-tab" class="tab-content">
+                            <div class="security-layout">
+                                <div id="security-alert-banner" class="alert-banner">
+                                    <div class="alert-icon"></div>
+                                    <div class="alert-text">
+                                        <h4 id="alert-title">No Simulation Data</h4>
+                                        <p id="alert-desc">Run a quantum key distribution simulation to analyze channel security.</p>
+                                    </div>
+                                </div>
+
+                                <div class="security-grid">
+                                    <div class="sec-card">
+                                        <h5>Quantum Bit Error Rate (QBER)</h5>
+                                        <div class="sec-metric-box">
+                                            <div class="metric">
+                                                <span class="metric-val" id="sec-qber-val">-</span>
+                                                <span class="metric-label">Measured QBER</span>
+                                            </div>
+                                            <div class="divider"></div>
+                                            <div class="metric">
+                                                <span class="metric-val" id="sec-qber-threshold">10.00%</span>
+                                                <span class="metric-label">Max Allowed Threshold</span>
+                                            </div>
+                                        </div>
+                                        <p class="sec-card-desc">If the QBER exceeds the 10.0% threshold, it mathematically indicates that an eavesdropper (Eve) has gained information on the key due to the No-Cloning Theorem.</p>
+                                    </div>
+
+                                    <div class="sec-card" id="eavesdropping-card">
+                                        <h5>Eavesdropping Assessment</h5>
+                                        <div class="sec-metric-box">
+                                            <div class="metric">
+                                                <span class="metric-val" id="sec-compromise-estimate">-</span>
+                                                <span class="metric-label">Information Compromised</span>
+                                            </div>
+                                            <div class="divider"></div>
+                                            <div class="metric">
+                                                <span class="metric-val" id="sec-confidence">-</span>
+                                                <span class="metric-label">Confidence Level</span>
+                                            </div>
+                                        </div>
+                                        <p class="sec-card-desc">Based on the deviation in error distribution, we calculate the maximum information leak to an interceptor and estimate the security confidence level.</p>
+                                    </div>
+
+                                    <div class="sec-card">
+                                        <h5>Privacy Amplification</h5>
+                                        <div class="sec-metric-box">
+                                            <div class="metric">
+                                                <span class="metric-val" id="sec-entropy-reduction">-</span>
+                                                <span class="metric-label">Entropy Reduction</span>
+                                            </div>
+                                            <div class="divider"></div>
+                                            <div class="metric">
+                                                <span class="metric-val" id="sec-leakage">-</span>
+                                                <span class="metric-label">Max Residual Leakage</span>
+                                            </div>
+                                        </div>
+                                        <p class="sec-card-desc">Privacy amplification uses hashing algorithms to compress the key, shrinking Eve's knowledge exponentially to practically zero (e.g. less than 10<sup>-30</sup> bits).</p>
+                                    </div>
+                                    
+                                    <div class="sec-card full-width">
+                                        <h5>Security Recommendation</h5>
+                                        <div class="recommendation-content" id="security-recommendation">
+                                            Run simulation to receive automated system instructions.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </section>
+        </main>
+        
+        <!-- Footer -->
+        <footer class="app-footer">
+            <p>&copy; 2026 Quantum Security Labs. Certified BB84 Satellite-to-Ground Simulation Platform.</p>
+            <div class="footer-links">
+                <a href="#" id="about-link">About QKD</a>
+                <span class="separator">|</span>
+                <a href="#" id="docs-link">Documentation</a>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Modals -->
+    <!-- About Modal -->
+    <div id="about-modal" class="modal">
+        <div class="modal-content glass-card">
+            <div class="modal-header">
+                <h3>About QKD Satellite System</h3>
+                <span class="close-btn">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p>This web simulator models <strong>Quantum Key Distribution (QKD)</strong> over a free-space optical channel between a satellite transmitter and two ground communication terminals (Alice and Bob).</p>
+                <p>By generating pairs of polarization-entangled photons, the satellite allows Alice and Bob to build a shared, random secret key. Any attempt at wiretapping by an adversary (Eve) perturbs the quantum states, causing measurable bit errors (QBER) that trigger alerts, aborting the key exchange if the eavesdropping exceeds safety limits.</p>
+                <div class="model-meta">
+                    <strong>Version:</strong> 1.0.0 Web Edition<br>
+                    <strong>Copyright:</strong> &copy; 2026 Quantum Security Labs
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Docs Modal -->
+    <div id="docs-modal" class="modal">
+        <div class="modal-content glass-card">
+            <div class="modal-header">
+                <h3>QKD Simulation Documentation</h3>
+                <span class="close-btn">&times;</span>
+            </div>
+            <div class="modal-body scrollable">
+                <h4>BB84 Protocol Workflow</h4>
+                <ol>
+                    <li><strong>State Generation:</strong> Alice (or the satellite) creates single photons randomized in one of four polarization angles: 0&deg; (Horizontal), 90&deg; (Vertical), 45&deg; (Diagonal), and 135&deg; (Anti-Diagonal). These represent bits 0 or 1 in two different bases (Rectilinear ✛ or Diagonal ✕).</li>
+                    <li><strong>Transmission:</strong> The photons are sent over the quantum channel to Bob.</li>
+                    <li><strong>Measurement:</strong> Bob measures each photon by randomly choosing either the Rectilinear ✛ or Diagonal ✕ basis. If his basis matches Alice's, he will measure the correct bit value. If it doesn't match, he gets a completely random result.</li>
+                    <li><strong>Sifting:</strong> Over a public classical channel, Alice and Bob announce which basis they used for each photon, but NOT the bit value. They discard bits where their bases mismatched, leaving the <strong>Raw Shifted Key</strong>.</li>
+                    <li><strong>Error Rate Estimation:</strong> They compare a small public subset of their key to measure the Quantum Bit Error Rate (QBER). An eavesdropper measuring the photons changes their quantum state (No-Cloning Theorem), driving the error rate up from ~5% (normal channel noise) to over 11%.</li>
+                    <li><strong>Error Correction & Privacy Amplification:</strong> If the error rate is safe (&lt;10%), they run error correction codes (e.g. Cascade) and compress the key using universal hashing (Privacy Amplification) to strip any partial knowledge Eve might have gathered, producing the final secure key.</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <!-- Simulation Progress Modal -->
+    <div id="progress-modal" class="modal progress-modal">
+        <div class="modal-content glass-card">
+            <h3>Simulation In Progress</h3>
+            <div class="progress-bar-container">
+                <div id="simulation-progress-bar" class="progress-bar"></div>
+            </div>
+            <p id="progress-status">Initializing Quantum Simulation...</p>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
